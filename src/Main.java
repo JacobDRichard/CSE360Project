@@ -1,10 +1,11 @@
 import static javax.swing.ScrollPaneConstants.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
+import java.io.*;
 
 public class Main {
 	private static File importFile;
@@ -60,8 +61,26 @@ public class Main {
 			if(jfc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 				importFile = jfc.getSelectedFile();
 
+				// Remove all text from previous import
+				importedText.setText("");
+
 				// TODO: This is where parsing and formatting happens, after import is successful
-				importedText.setText(jfc.getSelectedFile().toString());
+				try {
+					BufferedReader bufferedReader = new BufferedReader(new FileReader(importFile));
+
+					String line;
+					while((line = bufferedReader.readLine()) != null) {
+						// TODO: Start parsing here, find command, use switch (probably), error on default?
+
+						// Putting the text imported line by line into the JEditorPane
+						line += "\r\n";
+						importedText.setText(importedText.getText() + line);
+					}
+
+					// This removes the last \r\n we added, 3 since it also adds a blank space
+					importedText.getDocument().remove(importedText.getDocument().getLength() - 3, 3);
+
+				} catch (IOException | BadLocationException ignored) { }
 			}
 		});
 		JButton exportButton = new JButton("Export");
