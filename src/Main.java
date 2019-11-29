@@ -6,9 +6,18 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import LineNumberMargin;
+
+
+
 
 public class Main {
 	private static File importFile;
+
+	private static void copyFile(File source, File dest) throws IOException {
+		Files.copy(source.toPath(), dest.toPath());
+	}
+
 
 	public static void main(String[] args) {
 		// General window attributes
@@ -42,6 +51,8 @@ public class Main {
 		JPanel buttonPanel = new JPanel(new GridLayout(1, 2));
 		JButton importButton = new JButton("Import");
 		importButton.addActionListener(e -> {
+
+			
 			JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
 
 			jfc.setAcceptAllFileFilterUsed(false);
@@ -52,33 +63,132 @@ public class Main {
 
 				public boolean accept(File f) {
 					if (f.isDirectory())
+					{
+						
 						return true;
+					}
 					else
+					{
 						return f.getName().toLowerCase().endsWith(".txt");
+					}
 				}
 			});
 
 			if(jfc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 				importFile = jfc.getSelectedFile();
-
+				
 				// Remove all text from previous import
 				importedText.setText("");
+				formattedText.setText("");
 
 				// TODO: This is where parsing and formatting happens, after import is successful
 				try {
 					BufferedReader bufferedReader = new BufferedReader(new FileReader(importFile));
 
 					String line;
+					String formattedLine;
+					String command;
 					while((line = bufferedReader.readLine()) != null) {
 						// TODO: Start parsing here, find command, use switch (probably), error on default?
+						formattedLine = line;
+						command = "0000";
+						if (formattedLine.length() >= 1)
+						{
+							
+							
+							if (formattedLine.substring(0,1).compareTo("-") == 0)
+							{
+								if (formattedLine.length() < 3)
+								{
+									
+									command = formattedLine.substring(0 , 2);
+								}
+								else if (formattedLine.length() >= 3)
+								{
+									
+									command = formattedLine.substring(0 , formattedLine.length());
+								}
+							}
+							
+						}
+						/*
+							Here is the switch statement to read the different commands.
+							-b is an example of a command with a numerical argument.
+				
+						*/
+						switch (command.substring(0,2)) {
+							case "-n":
+								System.out.println("-n");
+								break;
+
+							case "-r":
+							
+								break;
+
+							case "-l":
+								
+								break;
+
+							case "-c":
+							
+								break;
+
+							case "-e":
+								
+								break;
+
+							case "-w":
+							
+								break;
+
+							case "-s":
+								
+								break;
+
+							case "-d":
+							
+								break;
+
+							case "-t":
+								
+								break;
+
+							case "-p":
+							
+								break;
+
+							case "-b":
+
+								System.out.println("-b" + command.substring(2, command.length()));
+								
+								break;
+
+							case "-a":
+							
+								break;
+						
+							default:
+						
+								break;
+						}
+
+						
 
 						// Putting the text imported line by line into the JEditorPane
-						line += "\r\n";
+						line += "\r"; //add new line
+						formattedLine = line;
 						importedText.setText(importedText.getText() + line);
+						formattedText.setText(formattedText.getText() + formattedLine); 
+						//currently just copies everything from importedtext and writes it onto formattedText
+		
 					}
 
 					// This removes the last \r\n we added, 3 since it also adds a blank space
-					importedText.getDocument().remove(importedText.getDocument().getLength() - 3, 3);
+					importedText.getDocument().remove(importedText.getDocument().getLength() - 1, 3); //seems to delete last 3 characters? changed -3 to -1
+					
+				
+					formattedText.getDocument().remove(formattedText.getDocument().getLength() - 1, 3);
+
 
 				} catch (IOException | BadLocationException ignored) { }
 			}
@@ -87,13 +197,40 @@ public class Main {
 		exportButton.addActionListener(e -> {
 			// TODO: Do the export stuff, don't need a file chooser, just use importFile, add -formatted after name, before file extension.
 			// importFile is the FULL path to the file from the file chooser
+			
 
+			try{
+				System.out.println("test1");
+				String newFileName = importFile.getName().substring(0, importFile.getName().length() - 4)+ "-formatted.txt";
+				//creates new string with -formatted after name.
+
+				File exportFile = new File(newFileName);
+
+				
+				BufferedWriter writer = new BufferedWriter(new FileWriter(newFileName));
+				writer.write(formattedText.getText());
+				writer.close();
+				//writes formatted text to file
+			
+				
+				exportFile.createNewFile();
+
+
+
+
+				System.out.println(importFile.getName());
+			}
+
+			catch(IOException except)
+			{
+
+			}
 			// TODO: This is the error popup, choice will be 0 for continue, 1 for cancel. Only make it show once you deem errors are found
 			String[] options = {"Continue", "Cancel"};
 			int choice = JOptionPane.showOptionDialog(null, "The imported file contains errors, would you like to continue exporting?",
 					"Continue Exporting?", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		});
-
+		
 		buttonPanel.add(importButton);
 		buttonPanel.add(exportButton);
 
