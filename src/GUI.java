@@ -128,7 +128,8 @@ class GUI extends JFrame implements ActionListener {
 				formattedText.setText("");
 
 				format = new Formatter(importFile);
-				format.parse(importedText, formattedText);
+				String errorsReported = format.parse(importedText, formattedText);
+				console.setText(errorsReported);
 			}
 		} else if (action.equals("Export")) {
 			if(format != null) {
