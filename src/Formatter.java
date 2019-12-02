@@ -64,12 +64,12 @@ class Formatter {
 						//Check if the line currently read is the double column command
 						//Or the line after. Start the section accordingly.
 						String doubleColumnSection;
+						int startLineCount = lineCount;
 						if (line.compareTo("-a2") == 0) {
 							doubleColumnSection = "";
 						} else {
 							doubleColumnSection = line + "\n";
 						}
-						int startLineCount = lineCount;
 						//Keep adding next lines while there are lines, the 1 column command isn't given, the title command
 						//isn't given (because it would reset columns to 1) and an invalid column command isn't given
 						//(would set column to default = 1)
@@ -86,7 +86,7 @@ class Formatter {
 							}
 						}
 						//Once section is complete, apply formatting and send to output display
-						formattedLine = applyDoubleColumnFormatting(doubleColumnSection, startLineCount + 1);
+						formattedLine = applyDoubleColumnFormatting(doubleColumnSection, startLineCount);
 						formattedText.setText(formattedText.getText() + formattedLine);
 						//If section terminated because there are no more lines, set flag to true to terminate file loop
 						if (line == null) {
@@ -168,7 +168,7 @@ class Formatter {
 							}		
 						}
 						//Once section is completed, apply formatting and send to output display
-						formattedLine = applySingleColumnFormatting(singleColumnSection, startLineCount + 1);
+						formattedLine = applySingleColumnFormatting(singleColumnSection, startLineCount);
 						formattedText.setText(formattedText.getText() + formattedLine);
 						//If section terminated because there are no more lines, set flag to true to terminate file loop
 						if (line == null) {
@@ -203,7 +203,7 @@ class Formatter {
 			if (currentLine.substring(0, 1).compareTo("-") == 0) {
 				String command = currentLine;
 				//Parse the command
-				String returnedValue = parseCommand(command, lineCount);
+				String returnedValue = parseCommand(command, currentLineCount);
 				//Check if command was for title
 				if (returnedValue.equals("Title") && section.hasNextLine() == true) {
 					//Set title to next line
@@ -271,13 +271,15 @@ class Formatter {
 						currentLineCount++;
 						//If next line is a command, terminate wrapping section
 						if (nextLine.substring(0, 1).compareTo("-") == 0) {
-							nextLine = nextLine.substring(0, nextLine.length() - 1);
 							flag = true;
 						//If next line is not a command, add it to the wrapping section.
 						//The wrapped section is essentially one long line that will be broken up
 						} else {
 							currentLine = currentLine + " " + nextLine;
 						}
+					}
+					if (section.hasNextLine() == false) {
+						nextLine = "";
 					}
 					//Add newline to end of wrapped section
 					currentLine += "\n";
@@ -441,7 +443,7 @@ class Formatter {
 				//If wrapping was applied, the wrapping section stopped after a command was read.
 				//Parse and apply that command here if necessary
 				if (nextLine.length() != 0) {
-					String returnedValue = parseCommand(nextLine, lineCount);
+					String returnedValue = parseCommand(nextLine, currentLineCount);
 					if (returnedValue.equals("Title") && section.hasNextLine() == true) {
 						String title = section.nextLine();
 						currentLineCount++;
