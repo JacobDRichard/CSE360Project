@@ -144,8 +144,13 @@ class GUI extends JFrame implements ActionListener {
 				formattedText.setText("");
 
 				format = new Formatter(importFile);
-				String errorsReported = format.parse(importedText, formattedText);
-				console.setText(errorsReported);
+				// Split into two, 0 is errors (if any), 1 is format toString()
+				String[] response = format.parse(importedText, formattedText).split("-");
+
+				if(response[0].equals(""))
+					console.setText("Successfully imported all commands and text from " + importFile.getName() + "\n\n" + response[1]);
+				else
+					console.setText(response[0] + "\n" + response[1]);
 			}
 		} else if (action.equals("Export")) {
 			if(format != null) {

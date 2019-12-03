@@ -4,6 +4,8 @@ class Format {
 	private boolean wrapping;
 	private int spacing;
 	private int indentation;
+	private int blankLines;
+	private int columns;
 
 	Format() {
 		lineLength = 80;
@@ -11,6 +13,8 @@ class Format {
 		wrapping = false;
 		spacing = 1;
 		indentation = 0;
+		blankLines = 0;
+		columns = 1;
 	}
 
 	/**
@@ -104,6 +108,49 @@ class Format {
 	}
 
 	/**
+	 * Replaces the blank lines setting of the format
+	 *
+	 * @param   numLines   Blank lines
+	 */
+	void setBlankLines(int numLines) {
+		blankLines = numLines;
+	}
+
+	/**
+	 * Replaces the columns setting of the format
+	 *
+	 * @param   columns   Columns
+	 */
+	void setColumns(int columns) {
+		this.columns = columns;
+	}
+
+	/**
+	 * Returns a string representation of the format
+	 *
+	 * @return  Representation of format in a string
+	 */
+	public String toString() {
+		String strJustification = "";
+		if(justification == 'l')
+			strJustification = "Left";
+		else if(justification == 'c')
+			strJustification = "Center";
+		else if(justification == 'r')
+			strJustification = "Right";
+		else
+			strJustification = "Equal";
+
+		return "Line Length: " + lineLength + (lineLength == 80 ? " (Default)" : " (Imported)") + "\n" +
+				"Justification: " + strJustification + (justification == 'l' ? " (Default)" : " (Imported)") + "\n" +
+				"Wrapping: " + (wrapping ? "On" : "Off") + (!wrapping ? " (Default)" : " (Imported)") + "\n" +
+				"Line Spacing: " + (spacing == 1 ? "Single" : "Double") + (spacing == 1 ? " (Default)" : " (Imported)") + "\n" +
+				"Paragraph: " + indentation + (indentation == 0 ? " (Default)" : " (Imported)") + "\n" +
+				"Blank Lines: " + blankLines + (blankLines == 0 ? " (Default)" : " (Imported)") + "\n" +
+				"Columns: " + columns + (columns == 1 ? " (Default)" : " (Imported)");
+	}
+
+	/**
 	 * Resets the format to the default settings
 	 */
 	void reset() {
@@ -112,5 +159,7 @@ class Format {
 		wrapping = false;
 		spacing = 1;
 		indentation = 0;
+		blankLines = 0;
+		columns = 1;
 	}
 }
