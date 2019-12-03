@@ -5,6 +5,16 @@ import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+/**
+ * @author Yu Fu, Amodini Pathak, Jacob Richard, Connor Wardell
+ * @version 1.0, 3 Dec. 2019
+ * Arizona State University
+ * CSE 360: Intro to Software Engineering (85141)
+ * Team Project
+ *
+ * LineNumberMargin.java allows all JTextComponents to have a left side margin
+ * that will number the lines of text in the component.
+ */
 class LineNumberMargin extends JComponent implements DocumentListener, CaretListener, ComponentListener {
 	private JTextComponent textComp;
 

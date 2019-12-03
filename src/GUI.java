@@ -4,10 +4,19 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 
+/**
+ * @author Yu Fu, Amodini Pathak, Jacob Richard, Connor Wardell
+ * @version 1.0, 3 Dec. 2019
+ * Arizona State University
+ * CSE 360: Intro to Software Engineering (85141)
+ * Team Project
+ *
+ * GUI.java outlines the JFrame window of the program, handling its components,
+ * layout, and action handling.
+ */
 class GUI extends JFrame implements ActionListener {
 	private static final int FRAME_WIDTH = 1200;
 	private static final int FRAME_HEIGHT = 800;

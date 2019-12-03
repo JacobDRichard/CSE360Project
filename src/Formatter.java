@@ -6,6 +6,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Scanner;
 
+/**
+ * @author Yu Fu, Amodini Pathak, Jacob Richard, Connor Wardell
+ * @version 1.0, 3 Dec. 2019
+ * Arizona State University
+ * CSE 360: Intro to Software Engineering (85141)
+ * Team Project
+ *
+ * Formatter.java handles all parsing of commands, creation of a format
+ * and application of that format to the imported text file.
+ */
 class Formatter {
 	private File importFile;
 	private String errorsReported;
