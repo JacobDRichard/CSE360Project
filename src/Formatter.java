@@ -106,6 +106,8 @@ class Formatter {
 							flag = true;
 						//If section is terminated because of title command, add a title
 						} else if (line.compareTo("-t") == 0) {
+							//Set line length to 90 for title.
+							
 							//Read the next line which serves as the title
 							line = bufferedReader.readLine();
 							lineCount++;
@@ -213,7 +215,7 @@ class Formatter {
 		String result = "";
 		Scanner section = new Scanner(line);
 		String currentLine;
-		int currentLineCount = lineCount - 1;
+		int currentLineCount = lineCount;
 		
 		//Loop through the section using a Scanner object
 		while (section.hasNextLine() == true) {
@@ -941,6 +943,7 @@ class Formatter {
 						errorsReported += "Line " + lineCount + ": Invalid command\n";
 					//Else return "Title" to indicate that next line should be title
 					} else {
+						currentFormat.setLineLength(90);
 						result = "Title";
 					}
 					break;
