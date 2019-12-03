@@ -62,14 +62,17 @@ class Formatter {
 				if (line.length() >= 1) {
 					//Check if line specifies column number
 					if (line.compareTo("-a2") == 0) {
+						currentFormat.setColumns(2);
 						numCol = 2;
 					} else if (line.compareTo("-a1") == 0) {
+						currentFormat.setColumns(1);
 						numCol = 1;
 					//If line starts with column-changing command but has other content (an invalid command)
 					//issue error message and return column number to default (1)
 					} else if (line.length() > 3 && (line.substring(0, 3).compareTo("-a2") == 0 
 							|| line.substring(0, 3).compareTo("-a1") == 0)) {
 						errorsReported += "Line " + lineCount + ": Invalid number of columns.\n";
+						currentFormat.setColumns(1);
 						numCol = 1;
 					}
 					//2 column sections are processed separately
@@ -201,7 +204,7 @@ class Formatter {
 			
 			bufferedReader.close();
 		} catch (IOException | BadLocationException ignored) { }
-		return errorsReported;
+		return errorsReported + "-" + currentFormat.toString();
 	}
 
 	/**
@@ -991,6 +994,7 @@ class Formatter {
 							if (numLines < 0) {
 								errorsReported += "Line " + lineCount + ": Invalid number of blank lines.\n";
 							} else {
+								currentFormat.setBlankLines(numLines);
 								for (int count = 0; count < numLines; count++) {
 									result += "\n";
 								}
