@@ -1,6 +1,5 @@
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -49,12 +48,18 @@ class GUI extends JFrame implements ActionListener {
 		finishLayout();
 	}
 
+	/**
+	 * Instantiates the general layout components of the GUI
+	 */
 	private void createLayout() {
 		topPanel = new JPanel(new BorderLayout());
 		textPanel = new JPanel(new GridLayout(1, 2));
 		buttonPanel = new JPanel(new GridLayout(1, 2));
 	}
 
+	/**
+	 * Instantiates and configures the text areas of the GUI
+	 */
 	private void createTextAreas() {
 		// Imported text from the input text file, shows commands, no formatting
 		importedText = new JEditorPane();
@@ -80,6 +85,9 @@ class GUI extends JFrame implements ActionListener {
 		consoleScroll.setPreferredSize(new Dimension(FRAME_WIDTH, 150));
 	}
 
+	/**
+	 * Instantiates the buttons on the GUI
+	 */
 	private void createButtons() {
 		importButton = new JButton("Import");
 		importButton.addActionListener(this);
@@ -88,6 +96,9 @@ class GUI extends JFrame implements ActionListener {
 		exportButton.addActionListener(this);
 	}
 
+	/**
+	 * Adds all components to their respective layout component
+	 */
 	private void finishLayout() {
 		buttonPanel.add(importButton);
 		buttonPanel.add(exportButton);
@@ -101,6 +112,11 @@ class GUI extends JFrame implements ActionListener {
 		getContentPane().add(BorderLayout.SOUTH, consoleScroll);
 	}
 
+	/**
+	 * Handles all action events for the GUI components
+	 *
+	 * @param   e   ActionEvent passed through by any action event on the component
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String action = e.getActionCommand();
@@ -134,7 +150,7 @@ class GUI extends JFrame implements ActionListener {
 		} else if (action.equals("Export")) {
 			if(format != null) {
 				try {
-					if (format.getError() != 0) {
+					if (format.hasError()) {
 						String[] options = {"Continue", "Cancel"};
 						int choice = JOptionPane.showOptionDialog(null, "The imported file contains errors, would you like to continue exporting?",
 								"Continue Exporting?", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);

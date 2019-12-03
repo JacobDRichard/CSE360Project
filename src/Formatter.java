@@ -8,28 +8,40 @@ import java.util.Scanner;
 
 class Formatter {
 	private File importFile;
-	private int hasError;
 	private String errorsReported;
-	private FormattingScheme currentFormattingScheme;
+	private Format currentFormat;
 
 	Formatter(File importFile) {
 		this.importFile = importFile;
-		hasError = 0;
 		errorsReported = "";
-		currentFormattingScheme = new FormattingScheme();
+		currentFormat = new Format();
 	}
 
-	int getError() { return hasError; }
+	/**
+	 * Determines if any errors were found during import
+	 *
+	 * @return  Boolean if any errors were found on import
+	 */
+	boolean hasError() {
+		return errorsReported.compareTo("") != 0;
+	}
 
+	/**
+	 * Parses the imported file for commands and shows the imported text on the GUI
+	 *
+	 * @param   importedText    JEditorPane where imported text is placed
+	 * @param   formattedText   JEditorPane where formatted text is placed
+	 * @return  The errors found during import
+	 */
 	String parse(JEditorPane importedText, JEditorPane formattedText) {
 		try {
 			//Read input file line by line and send text to importedText pane.
 			BufferedReader bufferedReaderInitial = new BufferedReader(new FileReader(importFile));
-			String lineforDisplay;
-			while ((lineforDisplay = bufferedReaderInitial.readLine()) != null) {
+			String lineForDisplay;
+			while ((lineForDisplay = bufferedReaderInitial.readLine()) != null) {
 				// Putting the text imported line by line into the JEditorPane
-				lineforDisplay += "\r"; //add new line
-				importedText.setText(importedText.getText() + lineforDisplay);
+				lineForDisplay += "\r"; //add new line
+				importedText.setText(importedText.getText() + lineForDisplay);
 			}
 			bufferedReaderInitial.close();
 			
@@ -44,6 +56,7 @@ class Formatter {
 			while (!flag && (line = bufferedReader.readLine()) != null) {
 				//To keep track of command line number for error messages
 				lineCount++;
+
 				//Skip blank lines in input text. Only blank lines added using "-b" will
 				//be in the formatted text
 				if (line.length() >= 1) {
@@ -127,7 +140,7 @@ class Formatter {
 									formattedText.setText(formattedText.getText() + formattedLine);
 									formattedText.setText(formattedText.getText() + underline);	
 									//Reset formatting scheme
-									currentFormattingScheme.reset();
+									currentFormat.reset();
 									numCol = 1;
 								}
 							}
@@ -188,7 +201,14 @@ class Formatter {
 		} catch (IOException | BadLocationException ignored) { }
 		return errorsReported;
 	}
-	
+
+	/**
+	 * Applies formatting rules where columns is set to 1
+	 *
+	 * @param   line    String to apply formatting
+	 * @param   lineCount   Line number
+	 * @return  Formatted string
+	 */
 	private String applySingleColumnFormatting(String line, int lineCount) {
 		String result = "";
 		Scanner section = new Scanner(line);
@@ -235,7 +255,7 @@ class Formatter {
 						result = result + title + "\n";
 						result = result + underline + "\n";
 						//Reset formatting
-						currentFormattingScheme.reset();
+						currentFormat.reset();
 					}
 				} else {
 					//Add any blank lines to result
@@ -243,11 +263,11 @@ class Formatter {
 				}
 			} else {
 				//Determine the formatting to apply to the line
-				int desiredLineLength = currentFormattingScheme.getLineLength();
-				char desiredJustification = currentFormattingScheme.getJustification();
-				int desiredWrapping = currentFormattingScheme.getWrapping();
-				int desiredSpacing = currentFormattingScheme.getSpacing();
-				int desiredIndentation = currentFormattingScheme.getIndentation();
+				int desiredLineLength = currentFormat.getLineLength();
+				char desiredJustification = currentFormat.getJustification();
+				boolean desiredWrapping = currentFormat.getWrapping();
+				int desiredSpacing = currentFormat.getSpacing();
+				int desiredIndentation = currentFormat.getIndentation();
 				String nextLine = "";
 				currentLine += "\n";
 				
@@ -257,11 +277,11 @@ class Formatter {
 						currentLine  = " " + currentLine;
 					}
 					//reset indentation after application
-					currentFormattingScheme.setIndentation(0);
+					currentFormat.setIndentation(0);
 				}
 				
 				//Add wrapping if necessary
-				if (desiredWrapping == 1) {
+				if (desiredWrapping) {
 					//remove newline character
 					currentLine = currentLine.substring(0, currentLine.length() - 1);
 					boolean flag = false;
@@ -468,7 +488,7 @@ class Formatter {
 							}
 							result = result + title + "\n";
 							result = result + underline + "\n";
-							currentFormattingScheme.reset();
+							currentFormat.reset();
 						}
 					} else {
 						result += returnedValue;
@@ -479,7 +499,14 @@ class Formatter {
 		section.close();
 		return result;
 	}
-	
+
+	/**
+	 * Applies formatting rules where columns is set to 2
+	 *
+	 * @param   line    String to apply formatting
+	 * @param   lineCount   Line number
+	 * @return  Formatted string
+	 */
 	private String applyDoubleColumnFormatting(String line, int lineCount) {
 		//Same as single column formatting except, at end, bottom half of the lines
 		//are moved up to become the second column. Also, line length is pre-set to
@@ -508,10 +535,10 @@ class Formatter {
 				//Line length is set to 35 by default for 2 columns, regardless of
 				//requested setting
 				int desiredLineLength = 35;
-				char desiredJustification = currentFormattingScheme.getJustification();
-				int desiredWrapping = currentFormattingScheme.getWrapping();
-				int desiredSpacing = currentFormattingScheme.getSpacing();
-				int desiredIndentation = currentFormattingScheme.getIndentation();
+				char desiredJustification = currentFormat.getJustification();
+				boolean desiredWrapping = currentFormat.getWrapping();
+				int desiredSpacing = currentFormat.getSpacing();
+				int desiredIndentation = currentFormat.getIndentation();
 				String nextLine = "";
 				currentLine += "\n";
 				
@@ -521,11 +548,11 @@ class Formatter {
 						currentLine  = " " + currentLine;
 					}
 					//reset indentation after application
-					currentFormattingScheme.setIndentation(0);
+					currentFormat.setIndentation(0);
 				}
 				
 				//Add wrapping if necessary
-				if (desiredWrapping == 1) {
+				if (desiredWrapping) {
 					//remove newline character
 					currentLine = currentLine.substring(0, currentLine.length() - 1);
 					boolean flag = false;
@@ -773,10 +800,17 @@ class Formatter {
 		scanCol2.close();
 		return finalColumnString;
 	}
-	
+
+	/**
+	 * Parses the string for commands and changes the format attribute if necessary
+	 *
+	 * @param   command    Command string to be parsed
+	 * @param   lineCount   Line number
+	 * @return  Result of command parsing
+	 */
 	private String parseCommand(String command, int lineCount) {
 		//Returns a string that is either empty (if command was invalid or resulted
-		//in a change of currentFormattingScheme attributes), the word "Title" to
+		//in a change of currentFormat attributes), the word "Title" to
 		//indicate that the next line is a title, or however many blank lines were
 		//requested if the command specified blank lines.
 		String result = "";
@@ -791,7 +825,7 @@ class Formatter {
 					//Invalid line length command because no number specified. Set to default
 					if (command.length() == 2) {
 						errorsReported += "Line " + lineCount + ": Invalid line length.\n";
-						currentFormattingScheme.setLineLength(80);
+						currentFormat.setLineLength(80);
 					} else {
 						//Look at what comes after "-n"
 						String numCharacters = command.substring(2, command.length());
@@ -802,14 +836,14 @@ class Formatter {
 							numChars = Integer.parseInt(numCharacters);
 							if (numChars < 1 || numChars > 90) {
 								errorsReported += "Line " + lineCount + ": Invalid line length.\n";
-								currentFormattingScheme.setLineLength(80);
+								currentFormat.setLineLength(80);
 							} else {
-								currentFormattingScheme.setLineLength(numChars);
+								currentFormat.setLineLength(numChars);
 							}
 						//Command is invalid if "-n" is followed by any non-numeric characters
 						} catch (NumberFormatException e) {
 							errorsReported += "Line " + lineCount + ": Invalid line length.\n";
-							currentFormattingScheme.setLineLength(80);
+							currentFormat.setLineLength(80);
 						}
 					}
 					break;
@@ -819,10 +853,10 @@ class Formatter {
 					//Issue error and set to default
 					if (command.length() > 2) {
 						errorsReported += "Line " + lineCount + ": Invalid command\n";
-						currentFormattingScheme.setJustification('l');
+						currentFormat.setJustification('l');
 					//Else, set to right justification
 					} else {
-						currentFormattingScheme.setJustification('r');
+						currentFormat.setJustification('r');
 					}
 					break;
 				//Left justify
@@ -832,7 +866,7 @@ class Formatter {
 						errorsReported += "Line " + lineCount + ": Invalid command\n";
 					} 
 					//Either way, set justification to left (since it is also the default)
-					currentFormattingScheme.setJustification('l');
+					currentFormat.setJustification('l');
 					break;
 				//Center justify
 				case "-c":
@@ -840,10 +874,10 @@ class Formatter {
 					//Issue error and set to default
 					if (command.length() > 2) {
 						errorsReported += "Line " + lineCount + ": Invalid command\n";
-						currentFormattingScheme.setJustification('l');
+						currentFormat.setJustification('l');
 					//Else, set to center justification
 					} else {
-						currentFormattingScheme.setJustification('c');
+						currentFormat.setJustification('c');
 					}
 					break;
 				//Equal justify
@@ -852,10 +886,10 @@ class Formatter {
 					//Issue error and set to default
 					if (command.length() > 2) {
 						errorsReported += "Line " + lineCount + ": Invalid command\n";
-						currentFormattingScheme.setJustification('l');
+						currentFormat.setJustification('l');
 					//Else, set to equal justification
 					} else {
-						currentFormattingScheme.setJustification('e');
+						currentFormat.setJustification('e');
 					}
 					break;
 				//Wrapping
@@ -864,16 +898,16 @@ class Formatter {
 					//Issue error and set to default
 					if (command.length() != 3) {
 						errorsReported += "Line " + lineCount + ": Invalid command\n";
-						currentFormattingScheme.setWrapping(0);
+						currentFormat.setWrapping(false);
 					} else {
 						//Check the 3rd character. + or - are valid. Others are not.
 						if (command.charAt(2) == '+' ) {
-							currentFormattingScheme.setWrapping(1);
+							currentFormat.setWrapping(true);
 						} else if (command.charAt(2) == '-') {
-							currentFormattingScheme.setWrapping(0);
+							currentFormat.setWrapping(false);
 						} else {
 							errorsReported += "Line " + lineCount + ": Invalid command\n";
-							currentFormattingScheme.setWrapping(0);
+							currentFormat.setWrapping(false);
 						}
 					}
 					break;
@@ -885,7 +919,7 @@ class Formatter {
 						errorsReported += "Line " + lineCount + ": Invalid command\n";
 					}
 					//Set to single spacing either way since it is default
-					currentFormattingScheme.setSpacing(1);
+					currentFormat.setSpacing(1);
 					break;
 				//Double spacing
 				case "-d":
@@ -893,10 +927,10 @@ class Formatter {
 					//Issue error and set to default
 					if (command.length() > 2) {
 						errorsReported += "Line " + lineCount + ": Invalid command\n";
-						currentFormattingScheme.setSpacing(1);
+						currentFormat.setSpacing(1);
 					//Else set to double spacing
 					} else {
-						currentFormattingScheme.setSpacing(2);
+						currentFormat.setSpacing(2);
 					}
 					break;
 				//Title
@@ -915,7 +949,7 @@ class Formatter {
 					//"-p" by itself is an invalid command. Issue error and set to default
 					if (command.length() == 2) {
 						errorsReported += "Line " + lineCount + ": Invalid number of spaces to indent paragraph by.\n";
-						currentFormattingScheme.setIndentation(0);
+						currentFormat.setIndentation(0);
 					} else {
 						//Look at characters after "-p"
 						String numberSpaces = command.substring(2, command.length());
@@ -924,16 +958,16 @@ class Formatter {
 							//If a number follows "-p", check if the number is an int and valid.
 							//If invalid, issue error and set to default. Else, set indentation to number.
 							numSpaces = Integer.parseInt(numberSpaces);
-							if (numSpaces < 0 || numSpaces >= currentFormattingScheme.getLineLength()) {
+							if (numSpaces < 0 || numSpaces >= currentFormat.getLineLength()) {
 								errorsReported += "Line " + lineCount + ": Invalid number of spaces to indent paragraph by.\n";
-								currentFormattingScheme.setIndentation(0);
+								currentFormat.setIndentation(0);
 							} else {
-								currentFormattingScheme.setIndentation(numSpaces);
+								currentFormat.setIndentation(numSpaces);
 							}
 						//If "-p" is followed by non-numeric characters, it is invalid. Issue error and set to default
 						} catch (NumberFormatException e) {
 							errorsReported += "Line " + lineCount + ": Invalid number of spaces to indent paragraph by.\n";
-							currentFormattingScheme.setIndentation(0);
+							currentFormat.setIndentation(0);
 						}
 					}
 					break;
@@ -971,81 +1005,5 @@ class Formatter {
 			}
 		}
 		return result;
-	}
-
-	//Class to hold the current formatting attributes to apply to a line
-	class FormattingScheme {
-		//num char per line
-		private int lineLength;
-		
-		//r = right, l = left, c = center, e = equal
-		private char justification;
-		
-		//0 = off, 1 = on
-		private int wrapping;
-		
-		//1 = single, 2 = double
-		private int spacing;
-		
-		//num spaces to indent by
-		private int indentation;
-		
-		//Initialize with defaults
-		FormattingScheme() {
-			lineLength = 80;
-			justification = 'l';
-			wrapping = 0;
-			spacing = 1;
-			indentation = 0;
-		}
-		
-		int getLineLength() {
-			return lineLength;
-		}
-		
-		void setLineLength(int numChar) {
-			this.lineLength = numChar;
-		}
-		
-		char getJustification() {
-			return justification;
-		}
-		
-		void setJustification(char justification) {
-			this.justification = justification;
-		}
-		
-		int getWrapping() {
-			return wrapping;
-		}
-		
-		void setWrapping(int wrapping) {
-			this.wrapping = wrapping;
-		}
-		
-		int getSpacing() {
-			return spacing;
-		}
-		
-		void setSpacing(int spacing) {
-			this.spacing = spacing;
-		}
-		
-		int getIndentation() {
-			return indentation;
-		}
-		
-		void setIndentation(int numSpaces) {
-			indentation = numSpaces;
-		}
-		
-		//For the title command, which causes a reset of attributes
-		void reset() {
-			lineLength = 80;
-			justification = 'l';
-			wrapping = 0;
-			spacing = 1;
-			indentation = 0;
-		}
 	}
 }

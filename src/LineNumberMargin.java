@@ -16,6 +16,11 @@ class LineNumberMargin extends JComponent implements DocumentListener, CaretList
 		editor.addCaretListener(this);
 	}
 
+	/**
+	 * Draws the line number margin onto the left of the text component
+	 *
+	 * @param   g   Graphics object created by repaint
+	 */
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -37,51 +42,97 @@ class LineNumberMargin extends JComponent implements DocumentListener, CaretList
 		}
 	}
 
+	/**
+	 * Repaint only for this object (LineNumberMargin)
+	 */
 	private void repaintMargin() {
 		SwingUtilities.invokeLater(this::repaint);
 	}
 
+	/**
+	 * Resizes the margin, called after any component size changes due to window resizing
+	 */
 	private void updateSize() {
 		Dimension size = new Dimension(28, textComp.getHeight());
 		setPreferredSize(size);
 		setSize(size);
 	}
 
+	/**
+	 * Object callback on text insertion
+	 *
+	 * @param   e   DocumentEvent passed through by any text insertion
+	 */
 	@Override
 	public void insertUpdate(DocumentEvent e) {
 		repaintMargin();
 	}
 
+	/**
+	 * Object callback on text deletion
+	 *
+	 * @param   e   DocumentEvent passed through by any text deletion
+	 */
 	@Override
 	public void removeUpdate(DocumentEvent e) {
 		repaintMargin();
 	}
 
+	/**
+	 * Object callback on document change
+	 *
+	 * @param   e   DocumentEvent passed through by any document change
+	 */
 	@Override
 	public void changedUpdate(DocumentEvent e) {
 		repaintMargin();
 	}
 
+	/**
+	 * Object callback on caret move
+	 *
+	 * @param   e   CaretEvent passed through by any caret move
+	 */
 	@Override
 	public void caretUpdate(CaretEvent e) {
 		repaintMargin();
 	}
 
+	/**
+	 * Object callback on size change
+	 *
+	 * @param   e   ComponentEvent passed through by any size change
+	 */
 	@Override
 	public void componentResized(ComponentEvent e) {
 		updateSize();
 		repaintMargin();
 	}
 
+	/**
+	 * Object callback on component visibility
+	 *
+	 * @param   e   ComponentEvent passed through by component visibility
+	 */
 	@Override
 	public void componentShown(ComponentEvent e) {
 		updateSize();
 		repaintMargin();
 	}
 
+	/**
+	 * Object callback on component position
+	 *
+	 * @param   e   ComponentEvent passed through the move of the component
+	 */
 	@Override
 	public void componentMoved(ComponentEvent e) { }
 
+	/**
+	 * Object callback on component visibility
+	 *
+	 * @param   e   ComponentEvent passed through by component visibility
+	 */
 	@Override
 	public void componentHidden(ComponentEvent e) { }
 }
