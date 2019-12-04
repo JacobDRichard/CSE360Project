@@ -305,7 +305,7 @@ class Formatter {
 								currentLineCount++;
 								
 								//If next line is a command, terminate wrapping section
-								if(nextLine.length() > 2)
+								if(nextLine.length() > 1)
 								{
 									if (nextLine.substring(0, 1).compareTo("-") == 0) {
 										
