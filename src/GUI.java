@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS;
 
 
 
@@ -52,7 +53,7 @@ class GUI extends JFrame implements ActionListener {
 	GUI(String title) {
 		// General window properties
 		setTitle(title);
-		setSize(FRAME_WIDTH + 200, FRAME_HEIGHT);
+		setSize(FRAME_WIDTH, FRAME_HEIGHT);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);
 
@@ -89,9 +90,10 @@ class GUI extends JFrame implements ActionListener {
 
 		// Preview of the formatted text with commands removed
 		formattedText = new JEditorPane();
+		formattedText.setSize(700, 800);
 		formattedText.setEditable(false);
 		formattedText.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-		formattedTextScroll = new JScrollPane(formattedText, VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_NEVER);
+		formattedTextScroll = new JScrollPane(formattedText, VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_ALWAYS);
 		formattedTextScroll.getVerticalScrollBar().setLocation(formattedTextScroll.getX() + 10, formattedTextScroll.getY());
 
 		// Console that will display status messages, preview of found commands, etc.

@@ -6,6 +6,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Scanner;
 
+/**
+ * @author Yu Fu, Amodini Pathak, Jacob Richard, Connor Wardell
+ * @version 1.0, 3 Dec. 2019
+ * Arizona State University
+ * CSE 360: Intro to Software Engineering (85141)
+ * Team Project
+ *
+ * Formatter.java handles all parsing of commands, creation of a format
+ * and application of that format to the imported text file.
+ */
 class Formatter {
 	private File importFile;
 	private String errorsReported;
@@ -85,7 +95,7 @@ class Formatter {
 							doubleColumnSection = "";
 						} else {
 							doubleColumnSection = line + "\n";
-							//startLineCount--;
+							startLineCount--;
 						}
 						//Keep adding next lines while there are lines, the 1 column command isn't given, the title command
 						//isn't given (because it would reset columns to 1) and an invalid column command isn't given
@@ -104,6 +114,7 @@ class Formatter {
 							flag = true;
 						//If section is terminated because of title command, add a title
 						} else if (line.compareTo("-t") == 0) {
+							lineCount++;
 							//Set line length to 90 for title.
 							
 							//Read the next line which serves as the title
@@ -150,10 +161,12 @@ class Formatter {
 						//of columns to 1
 						} else if (line.length() > 3 && (line.substring(0, 3).compareTo("-a2") == 0 || 
 								line.substring(0, 3).compareTo("-a1") == 0)) {
+							lineCount++;
 							errorsReported += "Line " + lineCount + ": Invalid number of columns.\n";
 							numCol = 1;
 						//Section terminated because number of columns set to 1
 						} else if (line.compareTo("-a1") == 0) {
+							lineCount++;
 							numCol = 1;
 						}
 					//Single column sections are processed separately.
@@ -166,7 +179,7 @@ class Formatter {
 							singleColumnSection = "";
 						} else {
 							singleColumnSection = line + "\n";
-							//startLineCount--;
+							startLineCount--;
 						}
 						//Add next lines to section while there are still lines and the 2 column command isn't given
 						while ((line = bufferedReader.readLine()) != null && line.compareTo("-a2") != 0) {
@@ -181,6 +194,7 @@ class Formatter {
 							flag = true;
 						//Else section terminated because number of columns set to 2
 						} else if (line.compareTo("-a2") == 0) {
+							lineCount++;
 							numCol = 2;
 						}
 					}
