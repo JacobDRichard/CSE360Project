@@ -85,6 +85,7 @@ class Formatter {
 							doubleColumnSection = "";
 						} else {
 							doubleColumnSection = line + "\n";
+							//startLineCount--;
 						}
 						//Keep adding next lines while there are lines, the 1 column command isn't given, the title command
 						//isn't given (because it would reset columns to 1) and an invalid column command isn't given
@@ -93,13 +94,7 @@ class Formatter {
 								&& line.compareTo("-t") != 0 && !(line.length() > 3 && line.substring(0, 3).compareTo("-a1") == 0)
 								&& !(line.length() > 3 && line.substring(0, 3).compareTo("-a2") == 0)) {
 							lineCount++;
-							//To disregard input blank lines
-							if (line.length() != 0) {
-								//To disregard duplicate 2 column command
-								if (line.compareTo("-a2") != 0) {
-									doubleColumnSection += line + "\n";
-								}
-							}
+							doubleColumnSection += line + "\n";
 						}
 						//Once section is complete, apply formatting and send to output display
 						formattedLine = applyDoubleColumnFormatting(doubleColumnSection, startLineCount);
@@ -140,6 +135,8 @@ class Formatter {
 										line = line + " ";
 										underline = underline + " ";
 									}
+									line += "\n";
+									underline += "\n";
 									formattedLine = line;
 									//Display title and underline
 									formattedText.setText(formattedText.getText() + formattedLine);
@@ -164,26 +161,17 @@ class Formatter {
 						//Check if line currently read is single column command
 						//or the line after that command. Start section accordingly.
 						String singleColumnSection = "";
+						int startLineCount = lineCount;
 						if (line.compareTo("-a1") == 0) {
 							singleColumnSection = "";
 						} else {
 							singleColumnSection = line + "\n";
+							//startLineCount--;
 						}
-						int startLineCount = lineCount;
 						//Add next lines to section while there are still lines and the 2 column command isn't given
 						while ((line = bufferedReader.readLine()) != null && line.compareTo("-a2") != 0) {
 							lineCount++;
-							//Disregard blank input lines and duplicate 1 column commands
-							if (line.length() != 0 && line.compareTo("-a1") != 0) {
-								//If line is an invalid column command, issue error
-								if (line.length() > 3 && (line.substring(0, 3).compareTo("-a2") == 0 ||
-										line.substring(0, 3).compareTo("-a1") == 0)) {
-									errorsReported += "Line " + lineCount + ": Invalid number of columns.\n";
-								//Else, add line to section
-								} else {
-									singleColumnSection += line + "\n";
-								}
-							}		
+							singleColumnSection += line + "\n";	
 						}
 						//Once section is completed, apply formatting and send to output display
 						formattedLine = applySingleColumnFormatting(singleColumnSection, startLineCount);
@@ -224,281 +212,290 @@ class Formatter {
 		while (section.hasNextLine() == true) {
 			currentLine = section.nextLine();
 			currentLineCount++;
-			//Check if the line is a command
-			if (currentLine.substring(0, 1).compareTo("-") == 0) {
-				String command = currentLine;
-				//Parse the command
-				String returnedValue = parseCommand(command, currentLineCount);
-				//Check if command was for title
-				if (returnedValue.equals("Title") && section.hasNextLine() == true) {
-					//Set title to next line
-					String title = section.nextLine();
-					currentLineCount++;
-					//Ensure title is not too long. If it is, issue error and ignore title.
-					int titleLength = title.length();
-					if (titleLength > 90) {
-						errorsReported += "Line " + lineCount + ": Title exceeds maximum number of characters.\n";
-					} else {
-						//Create underline the same length as the title
-						String underline = "";
-						for (int iterator = 0; iterator < titleLength; iterator++) {
-							underline += "-";
-						}
-						//Center title and underline
-						int numSpacesToCenter = 90 - titleLength;
-						int numSpacesToBegin = numSpacesToCenter/2;
-						int numSpacesToEnd = numSpacesToCenter - numSpacesToBegin;
-						for (int iterator = 0; iterator < numSpacesToBegin; iterator++) {
-							title = " " + title;
-							underline = " " + underline;
-						}
-						for (int iterator = 0; iterator < numSpacesToEnd; iterator++) {
-							title = title + " ";
-							underline = underline + " ";
-						}
-						//Add title and underline to result
-						result = result + title + "\n";
-						result = result + underline + "\n";
-						//Reset formatting
-						currentFormat.reset();
-					}
+			//Disregard blank input lines and duplicate 1 column commands
+			if (currentLine.length() != 0 && currentLine.compareTo("-a1") != 0) {
+				//If line is an invalid column command, issue error
+				if (currentLine.length() > 3 && (currentLine.substring(0, 3).compareTo("-a2") == 0 ||
+						currentLine.substring(0, 3).compareTo("-a1") == 0)) {
+					errorsReported += "Line " + currentLineCount + ": Invalid number of columns.\n";
 				} else {
-					//Add any blank lines to result
-					result += returnedValue;
-				}
-			} else {
-				//Determine the formatting to apply to the line
-				int desiredLineLength = currentFormat.getLineLength();
-				char desiredJustification = currentFormat.getJustification();
-				boolean desiredWrapping = currentFormat.getWrapping();
-				int desiredSpacing = currentFormat.getSpacing();
-				int desiredIndentation = currentFormat.getIndentation();
-				String nextLine = "";
-				currentLine += "\n";
-				
-				//Apply indentation if necessary
-				if(desiredIndentation != 0) {
-					for (int iterator = 0; iterator < desiredIndentation; iterator++) {
-						currentLine  = " " + currentLine;
-					}
-					//reset indentation after application
-					currentFormat.setIndentation(0);
-				}
-				
-				//Add wrapping if necessary
-				if (desiredWrapping) {
-					//remove newline character
-					currentLine = currentLine.substring(0, currentLine.length() - 1);
-					boolean flag = false;
-					//Loop through next lines
-					while (section.hasNextLine() && !flag) {
-						nextLine = section.nextLine();
-						currentLineCount++;
-						//If next line is a command, terminate wrapping section
-						if (nextLine.substring(0, 1).compareTo("-") == 0) {
-							flag = true;
-						//If next line is not a command, add it to the wrapping section.
-						//The wrapped section is essentially one long line that will be broken up
-						} else {
-							currentLine = currentLine + " " + nextLine;
-						}
-					}
-					if (section.hasNextLine() == false) {
-						nextLine = "";
-					}
-					//Add newline to end of wrapped section
-					currentLine += "\n";
-				}
-				
-				//Determine length of line
-				int numCharsInLine = currentLine.length() - 1;
-				
-				//Break up line if necessary due to length (will probably be necessary if wrapped)
-				//Do not break mid-word
-				if (numCharsInLine > desiredLineLength) {
-					String tempLine = "";
-					while (currentLine.length() > desiredLineLength) {
-						int startIndex = 0;
-						//Start end-of-line iterator at desired line length
-						int endIndex = desiredLineLength - 1;
-						//Move iterator backwards until a space is encountered
-						//to ensure it is not mid-word
-						while (currentLine.charAt(endIndex) != ' ') {
-							endIndex--;
-						}
-						//Break up the line by adding a newline
-						tempLine += currentLine.substring(startIndex, endIndex + 1);
-						tempLine += "\n";
-						currentLine = currentLine.substring(endIndex + 1);
-					}
-					tempLine += currentLine;
-					currentLine = tempLine;
-				}
-				
-				//Apply right justification if necessary
-				if (desiredJustification == 'r') {
-					int startIndex = 0;
-					//Loop to handle multiple lines (due to newlines)
-					while (startIndex < currentLine.length()) {
-						int stopIndex = currentLine.indexOf('\n', startIndex);
-						String singleLine = currentLine.substring(startIndex, stopIndex);
-						//Determine how many spaces are needed to reach desired line length
-						int numSpacesToAdd = desiredLineLength - singleLine.length();
-						//Add the spaces to the beginning of the line
-						if (startIndex == 0) {
-							for (int iterator = 0; iterator < numSpacesToAdd; iterator++) {
-								currentLine = " " + currentLine;
+					//Check if the line is a command
+					if (currentLine.substring(0, 1).compareTo("-") == 0) {
+						String command = currentLine;
+						//Parse the command
+						String returnedValue = parseCommand(command, currentLineCount);
+						//Check if command was for title
+						if (returnedValue.equals("Title") && section.hasNextLine() == true) {
+							//Set title to next line
+							String title = section.nextLine();
+							currentLineCount++;
+							//Ensure title is not too long. If it is, issue error and ignore title.
+							int titleLength = title.length();
+							if (titleLength > 90) {
+								errorsReported += "Line " + currentLineCount + ": Title exceeds maximum number of characters.\n";
+							} else {
+								//Create underline the same length as the title
+								String underline = "";
+								for (int iterator = 0; iterator < titleLength; iterator++) {
+									underline += "-";
+								}
+								//Center title and underline
+								int numSpacesToCenter = 90 - titleLength;
+								int numSpacesToBegin = numSpacesToCenter/2;
+								int numSpacesToEnd = numSpacesToCenter - numSpacesToBegin;
+								for (int iterator = 0; iterator < numSpacesToBegin; iterator++) {
+									title = " " + title;
+									underline = " " + underline;
+								}
+								for (int iterator = 0; iterator < numSpacesToEnd; iterator++) {
+									title = title + " ";
+									underline = underline + " ";
+								}
+								//Add title and underline to result
+								result = result + title + "\n";
+								result = result + underline + "\n";
+								//Reset formatting
+								currentFormat.reset();
 							}
 						} else {
-							String firstPart = currentLine.substring(0, startIndex);
-							String secondPart = currentLine.substring(startIndex);
-							String totalSpace = "";
-							for (int iterator = 0; iterator < numSpacesToAdd; iterator++) {
-								totalSpace += " ";
-							}
-							currentLine = firstPart + totalSpace + secondPart;
-						}
-						while (currentLine.charAt(startIndex) != '\n') {
-							startIndex++;
-						}
-						startIndex = startIndex + 1;
-					}
-				//Apply center justification if necessary
-				} else if (desiredJustification == 'c') {
-					int startIndex = 0;
-					//Loop to handle multiple lines (due to newlines)
-					while (startIndex < currentLine.length()) {
-						int stopIndex = currentLine.indexOf('\n', startIndex);
-						String singleLine = currentLine.substring(startIndex, stopIndex);
-						//Determine how many spaces are needed to reach desired line length
-						int numSpacesToAdd = desiredLineLength - singleLine.length();
-						int numSpacesToAddBegin = numSpacesToAdd/2;
-						int numSpacesToAddEnd = numSpacesToAdd - numSpacesToAddBegin;
-						//Add half the spaces to the beginning and half (or half + 1) to the end
-						//to center
-						if (startIndex == 0) {
-							for (int iterator = 0; iterator < numSpacesToAddBegin; iterator++) {
-								currentLine = " " + currentLine;
-								startIndex++;
-								stopIndex++;
-							}
-							String firstPart = currentLine.substring(0, stopIndex);
-							String lastPart = currentLine.substring(stopIndex);
-							String totalSpace = "";
-							for (int iterator = 0; iterator < numSpacesToAddEnd; iterator++) {
-								totalSpace += " ";
-								stopIndex++;
-							}
-							currentLine = firstPart + totalSpace + lastPart;
-						} else {
-							String firstPart = currentLine.substring(0, startIndex);
-							String middlePart = currentLine.substring(startIndex, stopIndex);
-							String lastPart = currentLine.substring(stopIndex);
-							String totalBeginSpace = "";
-							String totalEndSpace = "";
-							for (int iterator = 0; iterator < numSpacesToAddBegin; iterator++) {
-								totalBeginSpace += " ";
-								startIndex++;
-								stopIndex++;
-							}
-							for (int iterator = 0; iterator < numSpacesToAddEnd; iterator++) {
-								totalEndSpace += " ";
-								stopIndex++;
-							}
-							currentLine = firstPart + totalBeginSpace + middlePart + totalEndSpace + lastPart;
-						}
-						startIndex = stopIndex + 1;
-					}
-				//Apply equal justification if necessary
-				} else if (desiredJustification == 'e') {
-					//Start past the indentation since indentation would count as first instance
-					//of space after start of line.
-					int startIndex = 0 + desiredIndentation;
-					//Loop to handle multiple lines (due to newlines)
-					while (startIndex < currentLine.length()) {
-						int stopIndex = currentLine.indexOf('\n', startIndex);
-						String singleLine;
-						if (startIndex == 0 + desiredIndentation) {
-							singleLine = currentLine.substring(0, stopIndex);
-						} else {
-							singleLine = currentLine.substring(startIndex, stopIndex);
-						}
-						//Determine how many spaces are needed to reach desired line length
-						int numSpacesToAdd = desiredLineLength - singleLine.length();
-						int numSpacesAdded = 0;
-						//Find the first instance of space after the starting point (since 
-						//spacing should be added between words and not at the beginning or end)
-						int firstInstanceOfSpace = currentLine.indexOf(' ', startIndex);
-						int iterator = firstInstanceOfSpace;
-						//Loop over line repeatedly, adding an additional space between each word
-						while (numSpacesAdded != numSpacesToAdd) {
-							String firstPart = currentLine.substring(0, iterator);
-							String secondPart = currentLine.substring(iterator);
-							currentLine = firstPart + " " + secondPart;
-							stopIndex++;
-							numSpacesAdded++;
-							while (currentLine.charAt(iterator) == ' ') {
-								iterator++;
-							}
-							iterator = currentLine.indexOf(' ', iterator);
-							//Restart iterator at first instance of space
-							if (iterator >= stopIndex - 1 || iterator == -1) {
-								iterator = firstInstanceOfSpace;
-							}
-						}
-						startIndex = stopIndex + 1;
-					}
-				}
-				
-				//Apply double spacing if necessary
-				if (desiredSpacing == 2) {
-					int newLineIndex = 0;
-					//Add a newline next to every existing newline
-					while (newLineIndex < currentLine.length() - 2) {
-						newLineIndex = currentLine.indexOf('\n', newLineIndex + 2);
-						String firstHalf = currentLine.substring(0, newLineIndex);
-						String secondHalf = currentLine.substring(newLineIndex);
-						currentLine = firstHalf + "\n" + secondHalf;
-					}
-				}
-				
-				//Add formatted line to result
-				result += currentLine;
-				
-				//If wrapping was applied, the wrapping section stopped after a command was read.
-				//Parse and apply that command here if necessary
-				if (nextLine.length() != 0) {
-					String returnedValue = parseCommand(nextLine, currentLineCount);
-					if (returnedValue.equals("Title") && section.hasNextLine() == true) {
-						String title = section.nextLine();
-						currentLineCount++;
-						int titleLength = title.length();
-						if (titleLength > 90) {
-							errorsReported += "Line " + lineCount + ": Title exceeds maximum number of characters.\n";
-						} else {
-							String underline = "";
-							for (int iterator = 0; iterator < titleLength; iterator++) {
-								underline += "-";
-							}
-							int numSpacesToCenter = 90 - titleLength;
-							int numSpacesToBegin = numSpacesToCenter/2;
-							int numSpacesToEnd = numSpacesToCenter - numSpacesToBegin;
-							for (int iterator = 0; iterator < numSpacesToBegin; iterator++) {
-								title = " " + title;
-								underline = " " + underline;
-							}
-							for (int iterator = 0; iterator < numSpacesToEnd; iterator++) {
-								title = title + " ";
-								underline = underline + " ";
-							}
-							result = result + title + "\n";
-							result = result + underline + "\n";
-							currentFormat.reset();
+							//Add any blank lines to result
+							result += returnedValue;
 						}
 					} else {
-						result += returnedValue;
+						//Determine the formatting to apply to the line
+						int desiredLineLength = currentFormat.getLineLength();
+						char desiredJustification = currentFormat.getJustification();
+						boolean desiredWrapping = currentFormat.getWrapping();
+						int desiredSpacing = currentFormat.getSpacing();
+						int desiredIndentation = currentFormat.getIndentation();
+						String nextLine = "";
+						currentLine += "\n";
+						
+						//Apply indentation if necessary
+						if(desiredIndentation != 0) {
+							for (int iterator = 0; iterator < desiredIndentation; iterator++) {
+								currentLine  = " " + currentLine;
+							}
+							//reset indentation after application
+							currentFormat.setIndentation(0);
+						}
+						
+						//Add wrapping if necessary
+						if (desiredWrapping) {
+							//remove newline character
+							currentLine = currentLine.substring(0, currentLine.length() - 1);
+							boolean flag = false;
+							//Loop through next lines
+							while (section.hasNextLine() && !flag) {
+								nextLine = section.nextLine();
+								currentLineCount++;
+								//If next line is a command, terminate wrapping section
+								if (nextLine.substring(0, 1).compareTo("-") == 0) {
+									flag = true;
+								//If next line is not a command, add it to the wrapping section.
+								//The wrapped section is essentially one long line that will be broken up
+								} else {
+									currentLine = currentLine + " " + nextLine;
+								}
+							}
+							if (section.hasNextLine() == false) {
+								nextLine = "";
+							}
+							//Add newline to end of wrapped section
+							currentLine += "\n";
+						}
+						
+						//Determine length of line
+						int numCharsInLine = currentLine.length() - 1;
+						
+						//Break up line if necessary due to length (will probably be necessary if wrapped)
+						//Do not break mid-word
+						if (numCharsInLine > desiredLineLength) {
+							String tempLine = "";
+							while (currentLine.length() > desiredLineLength) {
+								int startIndex = 0;
+								//Start end-of-line iterator at desired line length
+								int endIndex = desiredLineLength - 1;
+								//Move iterator backwards until a space is encountered
+								//to ensure it is not mid-word
+								while (currentLine.charAt(endIndex) != ' ') {
+									endIndex--;
+								}
+								//Break up the line by adding a newline
+								tempLine += currentLine.substring(startIndex, endIndex + 1);
+								tempLine += "\n";
+								currentLine = currentLine.substring(endIndex + 1);
+							}
+							tempLine += currentLine;
+							currentLine = tempLine;
+						}
+						
+						//Apply right justification if necessary
+						if (desiredJustification == 'r') {
+							int startIndex = 0;
+							//Loop to handle multiple lines (due to newlines)
+							while (startIndex < currentLine.length()) {
+								int stopIndex = currentLine.indexOf('\n', startIndex);
+								String singleLine = currentLine.substring(startIndex, stopIndex);
+								//Determine how many spaces are needed to reach desired line length
+								int numSpacesToAdd = desiredLineLength - singleLine.length();
+								//Add the spaces to the beginning of the line
+								if (startIndex == 0) {
+									for (int iterator = 0; iterator < numSpacesToAdd; iterator++) {
+										currentLine = " " + currentLine;
+									}
+								} else {
+									String firstPart = currentLine.substring(0, startIndex);
+									String secondPart = currentLine.substring(startIndex);
+									String totalSpace = "";
+									for (int iterator = 0; iterator < numSpacesToAdd; iterator++) {
+										totalSpace += " ";
+									}
+									currentLine = firstPart + totalSpace + secondPart;
+								}
+								while (currentLine.charAt(startIndex) != '\n') {
+									startIndex++;
+								}
+								startIndex = startIndex + 1;
+							}
+						//Apply center justification if necessary
+						} else if (desiredJustification == 'c') {
+							int startIndex = 0;
+							//Loop to handle multiple lines (due to newlines)
+							while (startIndex < currentLine.length()) {
+								int stopIndex = currentLine.indexOf('\n', startIndex);
+								String singleLine = currentLine.substring(startIndex, stopIndex);
+								//Determine how many spaces are needed to reach desired line length
+								int numSpacesToAdd = desiredLineLength - singleLine.length();
+								int numSpacesToAddBegin = numSpacesToAdd/2;
+								int numSpacesToAddEnd = numSpacesToAdd - numSpacesToAddBegin;
+								//Add half the spaces to the beginning and half (or half + 1) to the end
+								//to center
+								if (startIndex == 0) {
+									for (int iterator = 0; iterator < numSpacesToAddBegin; iterator++) {
+										currentLine = " " + currentLine;
+										startIndex++;
+										stopIndex++;
+									}
+									String firstPart = currentLine.substring(0, stopIndex);
+									String lastPart = currentLine.substring(stopIndex);
+									String totalSpace = "";
+									for (int iterator = 0; iterator < numSpacesToAddEnd; iterator++) {
+										totalSpace += " ";
+										stopIndex++;
+									}
+									currentLine = firstPart + totalSpace + lastPart;
+								} else {
+									String firstPart = currentLine.substring(0, startIndex);
+									String middlePart = currentLine.substring(startIndex, stopIndex);
+									String lastPart = currentLine.substring(stopIndex);
+									String totalBeginSpace = "";
+									String totalEndSpace = "";
+									for (int iterator = 0; iterator < numSpacesToAddBegin; iterator++) {
+										totalBeginSpace += " ";
+										startIndex++;
+										stopIndex++;
+									}
+									for (int iterator = 0; iterator < numSpacesToAddEnd; iterator++) {
+										totalEndSpace += " ";
+										stopIndex++;
+									}
+									currentLine = firstPart + totalBeginSpace + middlePart + totalEndSpace + lastPart;
+								}
+								startIndex = stopIndex + 1;
+							}
+						//Apply equal justification if necessary
+						} else if (desiredJustification == 'e') {
+							//Start past the indentation since indentation would count as first instance
+							//of space after start of line.
+							int startIndex = 0 + desiredIndentation;
+							//Loop to handle multiple lines (due to newlines)
+							while (startIndex < currentLine.length()) {
+								int stopIndex = currentLine.indexOf('\n', startIndex);
+								String singleLine;
+								if (startIndex == 0 + desiredIndentation) {
+									singleLine = currentLine.substring(0, stopIndex);
+								} else {
+									singleLine = currentLine.substring(startIndex, stopIndex);
+								}
+								//Determine how many spaces are needed to reach desired line length
+								int numSpacesToAdd = desiredLineLength - singleLine.length();
+								int numSpacesAdded = 0;
+								//Find the first instance of space after the starting point (since 
+								//spacing should be added between words and not at the beginning or end)
+								int firstInstanceOfSpace = currentLine.indexOf(' ', startIndex);
+								int iterator = firstInstanceOfSpace;
+								//Loop over line repeatedly, adding an additional space between each word
+								while (numSpacesAdded != numSpacesToAdd) {
+									String firstPart = currentLine.substring(0, iterator);
+									String secondPart = currentLine.substring(iterator);
+									currentLine = firstPart + " " + secondPart;
+									stopIndex++;
+									numSpacesAdded++;
+									while (currentLine.charAt(iterator) == ' ') {
+										iterator++;
+									}
+									iterator = currentLine.indexOf(' ', iterator);
+									//Restart iterator at first instance of space
+									if (iterator >= stopIndex - 1 || iterator == -1) {
+										iterator = firstInstanceOfSpace;
+									}
+								}
+								startIndex = stopIndex + 1;
+							}
+						}
+						
+						//Apply double spacing if necessary
+						if (desiredSpacing == 2) {
+							int newLineIndex = 0;
+							//Add a newline next to every existing newline
+							while (newLineIndex < currentLine.length() - 2) {
+								newLineIndex = currentLine.indexOf('\n', newLineIndex + 2);
+								String firstHalf = currentLine.substring(0, newLineIndex);
+								String secondHalf = currentLine.substring(newLineIndex);
+								currentLine = firstHalf + "\n" + secondHalf;
+							}
+						}
+						
+						//Add formatted line to result
+						result += currentLine;
+						
+						//If wrapping was applied, the wrapping section stopped after a command was read.
+						//Parse and apply that command here if necessary
+						if (nextLine.length() != 0) {
+							String returnedValue = parseCommand(nextLine, currentLineCount);
+							if (returnedValue.equals("Title") && section.hasNextLine() == true) {
+								String title = section.nextLine();
+								currentLineCount++;
+								int titleLength = title.length();
+								if (titleLength > 90) {
+									errorsReported += "Line " + currentLineCount + ": Title exceeds maximum number of characters.\n";
+								} else {
+									String underline = "";
+									for (int iterator = 0; iterator < titleLength; iterator++) {
+										underline += "-";
+									}
+									int numSpacesToCenter = 90 - titleLength;
+									int numSpacesToBegin = numSpacesToCenter/2;
+									int numSpacesToEnd = numSpacesToCenter - numSpacesToBegin;
+									for (int iterator = 0; iterator < numSpacesToBegin; iterator++) {
+										title = " " + title;
+										underline = " " + underline;
+									}
+									for (int iterator = 0; iterator < numSpacesToEnd; iterator++) {
+										title = title + " ";
+										underline = underline + " ";
+									}
+									result = result + title + "\n";
+									result = result + underline + "\n";
+									currentFormat.reset();
+								}
+							} else {
+								result += returnedValue;
+							}
+						}	
 					}
-				}	
+				}
 			}
 		}
 		section.close();
@@ -519,231 +516,234 @@ class Formatter {
 		String result = "";
 		Scanner section = new Scanner(line);
 		String currentLine;
-		int currentLineCount = lineCount - 1;
+		int currentLineCount = lineCount;
 		
 		//Loop through the section using a Scanner object
 		while (section.hasNextLine() == true) {
 			currentLine = section.nextLine();
 			currentLineCount++;
-			//Check if the line is a command
-			if (currentLine.substring(0, 1).compareTo("-") == 0) {
-				String command = currentLine;
-				//Parse the command
-				String returnedValue = parseCommand(command, currentLineCount);
-				//There should not be any title commands in this section
-				//so returnedValue shouldn't be "Title"
-				if (returnedValue.compareTo("Title") != 0) {
-					result += returnedValue;
-				}
-			} else {
-				//Determine the formatting to apply to the line
-				//Line length is set to 35 by default for 2 columns, regardless of
-				//requested setting
-				int desiredLineLength = 35;
-				char desiredJustification = currentFormat.getJustification();
-				boolean desiredWrapping = currentFormat.getWrapping();
-				int desiredSpacing = currentFormat.getSpacing();
-				int desiredIndentation = currentFormat.getIndentation();
-				String nextLine = "";
-				currentLine += "\n";
-				
-				//Apply indentation if necessary
-				if(desiredIndentation != 0) {
-					for (int iterator = 0; iterator < desiredIndentation; iterator++) {
-						currentLine  = " " + currentLine;
+			//To disregard input blank lines and duplicate 2 column command
+			if (currentLine.length() != 0 && currentLine.compareTo("-a2") != 0) { 
+				//Check if the line is a command
+				if (currentLine.substring(0, 1).compareTo("-") == 0) {
+					String command = currentLine;
+					//Parse the command
+					String returnedValue = parseCommand(command, currentLineCount);
+					//There should not be any title commands in this section
+					//so returnedValue shouldn't be "Title"
+					if (returnedValue.compareTo("Title") != 0) {
+						result += returnedValue;
 					}
-					//reset indentation after application
-					currentFormat.setIndentation(0);
-				}
-				
-				//Add wrapping if necessary
-				if (desiredWrapping) {
-					//remove newline character
-					currentLine = currentLine.substring(0, currentLine.length() - 1);
-					boolean flag = false;
-					//Loop through next lines
-					while (section.hasNextLine() && !flag) {
-						nextLine = section.nextLine();
-						currentLineCount++;
-						//If next line is a command, terminate wrapping section
-						if (nextLine.substring(0, 1).compareTo("-") == 0) {
-							flag = true;
-						//If next line is not a command, add it to the wrapping section.
-						//The wrapped section is essentially one long line that will be broken up
-						} else {
-							currentLine = currentLine + " " + nextLine;
-						}
-					}
-					if (section.hasNextLine() == false) {
-						nextLine = "";
-					}
-					//Add newline to end of wrapped section
+				} else {
+					//Determine the formatting to apply to the line
+					//Line length is set to 35 by default for 2 columns, regardless of
+					//requested setting
+					int desiredLineLength = 35;
+					char desiredJustification = currentFormat.getJustification();
+					boolean desiredWrapping = currentFormat.getWrapping();
+					int desiredSpacing = currentFormat.getSpacing();
+					int desiredIndentation = currentFormat.getIndentation();
+					String nextLine = "";
 					currentLine += "\n";
-				}
-				
-				//Determine length of line
-				int numCharsInLine = currentLine.length() - 1;
-				
-				//Break up line if necessary due to length (will probably be necessary if wrapped)
-				//Do not break mid-word
-				if (numCharsInLine > desiredLineLength) {
-					String tempLine = "";
-					while (currentLine.length() > desiredLineLength) {
+					
+					//Apply indentation if necessary
+					if(desiredIndentation != 0) {
+						for (int iterator = 0; iterator < desiredIndentation; iterator++) {
+							currentLine  = " " + currentLine;
+						}
+						//reset indentation after application
+						currentFormat.setIndentation(0);
+					}
+					
+					//Add wrapping if necessary
+					if (desiredWrapping) {
+						//remove newline character
+						currentLine = currentLine.substring(0, currentLine.length() - 1);
+						boolean flag = false;
+						//Loop through next lines
+						while (section.hasNextLine() && !flag) {
+							nextLine = section.nextLine();
+							currentLineCount++;
+							//If next line is a command, terminate wrapping section
+							if (nextLine.substring(0, 1).compareTo("-") == 0) {
+								flag = true;
+							//If next line is not a command, add it to the wrapping section.
+							//The wrapped section is essentially one long line that will be broken up
+							} else {
+								currentLine = currentLine + " " + nextLine;
+							}
+						}
+						if (section.hasNextLine() == false) {
+							nextLine = "";
+						}
+						//Add newline to end of wrapped section
+						currentLine += "\n";
+					}
+					
+					//Determine length of line
+					int numCharsInLine = currentLine.length() - 1;
+					
+					//Break up line if necessary due to length (will probably be necessary if wrapped)
+					//Do not break mid-word
+					if (numCharsInLine > desiredLineLength) {
+						String tempLine = "";
+						while (currentLine.length() > desiredLineLength) {
+							int startIndex = 0;
+							//Start end-of-line iterator at desired line length
+							int endIndex = desiredLineLength - 1;
+							//Move iterator backwards until a space is encountered
+							//to ensure it is not mid-word
+							while (currentLine.charAt(endIndex) != ' ') {
+								endIndex--;
+							}
+							//Break up the line by adding a newline
+							tempLine += currentLine.substring(startIndex, endIndex + 1);
+							tempLine += "\n";
+							currentLine = currentLine.substring(endIndex + 1);
+						}
+						tempLine += currentLine;
+						currentLine = tempLine;
+					}
+					
+					//Apply right justification if necessary
+					if (desiredJustification == 'r') {
 						int startIndex = 0;
-						//Start end-of-line iterator at desired line length
-						int endIndex = desiredLineLength - 1;
-						//Move iterator backwards until a space is encountered
-						//to ensure it is not mid-word
-						while (currentLine.charAt(endIndex) != ' ') {
-							endIndex--;
-						}
-						//Break up the line by adding a newline
-						tempLine += currentLine.substring(startIndex, endIndex + 1);
-						tempLine += "\n";
-						currentLine = currentLine.substring(endIndex + 1);
-					}
-					tempLine += currentLine;
-					currentLine = tempLine;
-				}
-				
-				//Apply right justification if necessary
-				if (desiredJustification == 'r') {
-					int startIndex = 0;
-					//Loop to handle multiple lines (due to newlines)
-					while (startIndex < currentLine.length()) {
-						int stopIndex = currentLine.indexOf('\n', startIndex);
-						String singleLine = currentLine.substring(startIndex, stopIndex);
-						//Determine how many spaces are needed to reach desired line length
-						int numSpacesToAdd = desiredLineLength - singleLine.length();
-						//Add the spaces to the beginning of the line
-						if (startIndex == 0) {
-							for (int iterator = 0; iterator < numSpacesToAdd; iterator++) {
-								currentLine = " " + currentLine;
+						//Loop to handle multiple lines (due to newlines)
+						while (startIndex < currentLine.length()) {
+							int stopIndex = currentLine.indexOf('\n', startIndex);
+							String singleLine = currentLine.substring(startIndex, stopIndex);
+							//Determine how many spaces are needed to reach desired line length
+							int numSpacesToAdd = desiredLineLength - singleLine.length();
+							//Add the spaces to the beginning of the line
+							if (startIndex == 0) {
+								for (int iterator = 0; iterator < numSpacesToAdd; iterator++) {
+									currentLine = " " + currentLine;
+								}
+							} else {
+								String firstPart = currentLine.substring(0, startIndex);
+								String secondPart = currentLine.substring(startIndex);
+								String totalSpace = "";
+								for (int iterator = 0; iterator < numSpacesToAdd; iterator++) {
+									totalSpace += " ";
+								}
+								currentLine = firstPart + totalSpace + secondPart;
 							}
-						} else {
-							String firstPart = currentLine.substring(0, startIndex);
-							String secondPart = currentLine.substring(startIndex);
-							String totalSpace = "";
-							for (int iterator = 0; iterator < numSpacesToAdd; iterator++) {
-								totalSpace += " ";
-							}
-							currentLine = firstPart + totalSpace + secondPart;
-						}
-						while (currentLine.charAt(startIndex) != '\n') {
-							startIndex++;
-						}
-						startIndex = startIndex + 1;
-					}
-				//Apply center justification if necessary
-				} else if (desiredJustification == 'c') {
-					int startIndex = 0;
-					//Loop to handle multiple lines (due to newlines)
-					while (startIndex < currentLine.length()) {
-						int stopIndex = currentLine.indexOf('\n', startIndex);
-						String singleLine = currentLine.substring(startIndex, stopIndex);
-						//Determine how many spaces are needed to reach desired line length
-						int numSpacesToAdd = desiredLineLength - singleLine.length();
-						int numSpacesToAddBegin = numSpacesToAdd/2;
-						int numSpacesToAddEnd = numSpacesToAdd - numSpacesToAddBegin;
-						//Add half the spaces to the beginning and half (or half + 1) to the end
-						//to center
-						if (startIndex == 0) {
-							for (int iterator = 0; iterator < numSpacesToAddBegin; iterator++) {
-								currentLine = " " + currentLine;
+							while (currentLine.charAt(startIndex) != '\n') {
 								startIndex++;
-								stopIndex++;
 							}
-							String firstPart = currentLine.substring(0, stopIndex);
-							String lastPart = currentLine.substring(stopIndex);
-							String totalSpace = "";
-							for (int iterator = 0; iterator < numSpacesToAddEnd; iterator++) {
-								totalSpace += " ";
-								stopIndex++;
-							}
-							currentLine = firstPart + totalSpace + lastPart;
-						} else {
-							String firstPart = currentLine.substring(0, startIndex);
-							String middlePart = currentLine.substring(startIndex, stopIndex);
-							String lastPart = currentLine.substring(stopIndex);
-							String totalBeginSpace = "";
-							String totalEndSpace = "";
-							for (int iterator = 0; iterator < numSpacesToAddBegin; iterator++) {
-								totalBeginSpace += " ";
-								startIndex++;
-								stopIndex++;
-							}
-							for (int iterator = 0; iterator < numSpacesToAddEnd; iterator++) {
-								totalEndSpace += " ";
-								stopIndex++;
-							}
-							currentLine = firstPart + totalBeginSpace + middlePart + totalEndSpace + lastPart;
+							startIndex = startIndex + 1;
 						}
-						startIndex = stopIndex + 1;
+					//Apply center justification if necessary
+					} else if (desiredJustification == 'c') {
+						int startIndex = 0;
+						//Loop to handle multiple lines (due to newlines)
+						while (startIndex < currentLine.length()) {
+							int stopIndex = currentLine.indexOf('\n', startIndex);
+							String singleLine = currentLine.substring(startIndex, stopIndex);
+							//Determine how many spaces are needed to reach desired line length
+							int numSpacesToAdd = desiredLineLength - singleLine.length();
+							int numSpacesToAddBegin = numSpacesToAdd/2;
+							int numSpacesToAddEnd = numSpacesToAdd - numSpacesToAddBegin;
+							//Add half the spaces to the beginning and half (or half + 1) to the end
+							//to center
+							if (startIndex == 0) {
+								for (int iterator = 0; iterator < numSpacesToAddBegin; iterator++) {
+									currentLine = " " + currentLine;
+									startIndex++;
+									stopIndex++;
+								}
+								String firstPart = currentLine.substring(0, stopIndex);
+								String lastPart = currentLine.substring(stopIndex);
+								String totalSpace = "";
+								for (int iterator = 0; iterator < numSpacesToAddEnd; iterator++) {
+									totalSpace += " ";
+									stopIndex++;
+								}
+								currentLine = firstPart + totalSpace + lastPart;
+							} else {
+								String firstPart = currentLine.substring(0, startIndex);
+								String middlePart = currentLine.substring(startIndex, stopIndex);
+								String lastPart = currentLine.substring(stopIndex);
+								String totalBeginSpace = "";
+								String totalEndSpace = "";
+								for (int iterator = 0; iterator < numSpacesToAddBegin; iterator++) {
+									totalBeginSpace += " ";
+									startIndex++;
+									stopIndex++;
+								}
+								for (int iterator = 0; iterator < numSpacesToAddEnd; iterator++) {
+									totalEndSpace += " ";
+									stopIndex++;
+								}
+								currentLine = firstPart + totalBeginSpace + middlePart + totalEndSpace + lastPart;
+							}
+							startIndex = stopIndex + 1;
+						}
+					//Apply equal justification if necessary
+					} else if (desiredJustification == 'e') {
+						//Start past the indentation since indentation would count as first instance
+						//of space after start of line.
+						int startIndex = 0 + desiredIndentation;
+						//Loop to handle multiple lines (due to newlines)
+						while (startIndex < currentLine.length()) {
+							int stopIndex = currentLine.indexOf('\n', startIndex);
+							String singleLine;
+							if (startIndex == 0 + desiredIndentation) {
+								singleLine = currentLine.substring(0, stopIndex);
+							} else {
+								singleLine = currentLine.substring(startIndex, stopIndex);
+							}
+							//Determine how many spaces are needed to reach desired line length
+							int numSpacesToAdd = desiredLineLength - singleLine.length();
+							int numSpacesAdded = 0;
+							//Find the first instance of space after the starting point (since 
+							//spacing should be added between words and not at the beginning or end)
+							int firstInstanceOfSpace = currentLine.indexOf(' ', startIndex);
+							int iterator = firstInstanceOfSpace;
+							//Loop over line repeatedly, adding an additional space between each word
+							while (numSpacesAdded != numSpacesToAdd) {
+								String firstPart = currentLine.substring(0, iterator);
+								String secondPart = currentLine.substring(iterator);
+								currentLine = firstPart + " " + secondPart;
+								stopIndex++;
+								numSpacesAdded++;
+								while (currentLine.charAt(iterator) == ' ') {
+									iterator++;
+								}
+								iterator = currentLine.indexOf(' ', iterator);
+								//Restart iterator at first instance of space
+								if (iterator >= stopIndex - 1 || iterator == -1) {
+									iterator = firstInstanceOfSpace;
+								}
+							}
+							startIndex = stopIndex + 1;
+						}
 					}
-				//Apply equal justification if necessary
-				} else if (desiredJustification == 'e') {
-					//Start past the indentation since indentation would count as first instance
-					//of space after start of line.
-					int startIndex = 0 + desiredIndentation;
-					//Loop to handle multiple lines (due to newlines)
-					while (startIndex < currentLine.length()) {
-						int stopIndex = currentLine.indexOf('\n', startIndex);
-						String singleLine;
-						if (startIndex == 0 + desiredIndentation) {
-							singleLine = currentLine.substring(0, stopIndex);
-						} else {
-							singleLine = currentLine.substring(startIndex, stopIndex);
+					
+					//Apply double spacing if necessary
+					if (desiredSpacing == 2) {
+						int newLineIndex = 0;
+						//Add a newline next to every existing newline
+						while (newLineIndex < currentLine.length() - 2) {
+							newLineIndex = currentLine.indexOf('\n', newLineIndex + 2);
+							String firstHalf = currentLine.substring(0, newLineIndex);
+							String secondHalf = currentLine.substring(newLineIndex);
+							currentLine = firstHalf + "\n" + secondHalf;
 						}
-						//Determine how many spaces are needed to reach desired line length
-						int numSpacesToAdd = desiredLineLength - singleLine.length();
-						int numSpacesAdded = 0;
-						//Find the first instance of space after the starting point (since 
-						//spacing should be added between words and not at the beginning or end)
-						int firstInstanceOfSpace = currentLine.indexOf(' ', startIndex);
-						int iterator = firstInstanceOfSpace;
-						//Loop over line repeatedly, adding an additional space between each word
-						while (numSpacesAdded != numSpacesToAdd) {
-							String firstPart = currentLine.substring(0, iterator);
-							String secondPart = currentLine.substring(iterator);
-							currentLine = firstPart + " " + secondPart;
-							stopIndex++;
-							numSpacesAdded++;
-							while (currentLine.charAt(iterator) == ' ') {
-								iterator++;
-							}
-							iterator = currentLine.indexOf(' ', iterator);
-							//Restart iterator at first instance of space
-							if (iterator >= stopIndex - 1 || iterator == -1) {
-								iterator = firstInstanceOfSpace;
-							}
-						}
-						startIndex = stopIndex + 1;
 					}
+					
+					//Add formatted line to result
+					result += currentLine;
+					
+					//If wrapping was applied, the wrapping section stopped after a command was read.
+					//Parse and apply that command here if necessary
+					if (nextLine.length() != 0) {
+						String returnedValue = parseCommand(nextLine, currentLineCount);
+						//There should be no title commands in this section so returnedValue shouldn't
+						//be "Title"
+						result += returnedValue;
+					}	
 				}
-				
-				//Apply double spacing if necessary
-				if (desiredSpacing == 2) {
-					int newLineIndex = 0;
-					//Add a newline next to every existing newline
-					while (newLineIndex < currentLine.length() - 2) {
-						newLineIndex = currentLine.indexOf('\n', newLineIndex + 2);
-						String firstHalf = currentLine.substring(0, newLineIndex);
-						String secondHalf = currentLine.substring(newLineIndex);
-						currentLine = firstHalf + "\n" + secondHalf;
-					}
-				}
-				
-				//Add formatted line to result
-				result += currentLine;
-				
-				//If wrapping was applied, the wrapping section stopped after a command was read.
-				//Parse and apply that command here if necessary
-				if (nextLine.length() != 0) {
-					String returnedValue = parseCommand(nextLine, currentLineCount);
-					//There should be no title commands in this section so returnedValue shouldn't
-					//be "Title"
-					result += returnedValue;
-				}	
 			}
 		}
 		section.close();

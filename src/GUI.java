@@ -8,6 +8,7 @@ import java.io.*;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
 
+
 class GUI extends JFrame implements ActionListener {
 	private static final int FRAME_WIDTH = 1200;
 	private static final int FRAME_HEIGHT = 800;
@@ -32,10 +33,15 @@ class GUI extends JFrame implements ActionListener {
 	private Formatter format;
 	private File importFile;
 
+	/**
+	 * Constructor to build the GUI with a given title.
+	 * 
+	 * @param title	the String to set as the GUI window title.
+	 */
 	GUI(String title) {
 		// General window properties
 		setTitle(title);
-		setSize(FRAME_WIDTH, FRAME_HEIGHT);
+		setSize(FRAME_WIDTH + 200, FRAME_HEIGHT);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);
 

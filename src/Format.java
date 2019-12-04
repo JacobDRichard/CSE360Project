@@ -1,12 +1,48 @@
 class Format {
+	
+	/**
+	 * Integer defining the number of characters per line
+	 */
 	private int lineLength;
+	
+	/**
+	 * Character defining justification.
+	 * 'r' = right justify
+	 * 'l' = left justify
+	 * 'c' = center justify
+	 * 'e' = equal justify
+	 */
 	private char justification;
+	
+	/**
+	 * boolean defining wrapping. False is off and true is on.
+	 */
 	private boolean wrapping;
+	
+	/**
+	 * Integer defining line spacing. 1 is single spacing, 2 is double.
+	 */
 	private int spacing;
+	
+	/**
+	 * Integer defining the number of spaces to indent by.
+	 */
 	private int indentation;
+	
+	/**
+	 * Integer defining the number of blank lines to print.
+	 */
 	private int blankLines;
+	
+	/**
+	 * Integer defining the number of columns.
+	 */
 	private int columns;
 
+	/**
+	 * Default constructor sets formatting attributes to their
+	 * default values.
+	 */
 	Format() {
 		lineLength = 80;
 		justification = 'l';
