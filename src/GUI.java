@@ -22,6 +22,10 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS;
  * layout, and action handling.
  */
 class GUI extends JFrame implements ActionListener {
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
 	private static final int FRAME_WIDTH = 1200;
 	private static final int FRAME_HEIGHT = 800;
 

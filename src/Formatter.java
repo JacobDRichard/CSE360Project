@@ -303,14 +303,22 @@ class Formatter {
 							while (section.hasNextLine() && !flag) {
 								nextLine = section.nextLine();
 								currentLineCount++;
+								
 								//If next line is a command, terminate wrapping section
-								if (nextLine.substring(0, 1).compareTo("-") == 0) {
-									flag = true;
-								//If next line is not a command, add it to the wrapping section.
-								//The wrapped section is essentially one long line that will be broken up
-								} else {
-									currentLine = currentLine + " " + nextLine;
+								if(nextLine.length() > 2)
+								{
+									if (nextLine.substring(0, 1).compareTo("-") == 0) {
+										
+										flag = true;
+									//If next line is not a command, add it to the wrapping section.
+									//The wrapped section is essentially one long line that will be broken up
+									} 
+									else {
+										currentLine = currentLine + " " + nextLine;
+									}
+								
 								}
+
 							}
 							if (section.hasNextLine() == false) {
 								nextLine = "";
@@ -332,13 +340,28 @@ class Formatter {
 								int endIndex = desiredLineLength - 1;
 								//Move iterator backwards until a space is encountered
 								//to ensure it is not mid-word
+								
+
 								while (currentLine.charAt(endIndex) != ' ') {
-									endIndex--;
+									if (endIndex > startIndex)
+									{
+										endIndex--;
+									}
+
+									else
+									{	
+										errorsReported += "Line " + currentLineCount + ": Word exceeds maximum number of characters.\n";
+										break;
+									}
+
+									
 								}
 								//Break up the line by adding a newline
 								tempLine += currentLine.substring(startIndex, endIndex + 1);
 								tempLine += "\n";
 								currentLine = currentLine.substring(endIndex + 1);
+								
+							
 							}
 							tempLine += currentLine;
 							currentLine = tempLine;
